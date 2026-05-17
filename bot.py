@@ -12,10 +12,9 @@ import os
 yandex_token = os.environ.get("YANDEX_TOKEN")
 
 if yandex_token:
-    # Запускаем клиент с твоим рабочим токеном
-    ym_client = Client(yandex_token).init()
+    # Явно указываем библиотеке, что передаем session_id
+    ym_client = Client(session_id=yandex_token).init()
 else:
-    # Если токен забыли указать, оставляем пустой (вызовет ошибку)
     ym_client = Client().init()
 # 2. Настройки бота (Замени текст в кавычках на свой токен от @BotFather)
 BOT_TOKEN = "8516159067:AAGVvZRnYjXwThNjqLFrzVwDXZgewwqnZ5M"
