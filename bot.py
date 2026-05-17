@@ -6,9 +6,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from yandex_music import Client
-
-# # 1. Подключение к Яндекс Музыке с проверкой токена
 import os
+
+# 1. Подключение к Яндекс Музыке с проверкой токена
 yandex_token = os.environ.get("YANDEX_TOKEN")
 
 if yandex_token:
@@ -16,40 +16,37 @@ if yandex_token:
     ym_client = Client(session_id=yandex_token).init()
 else:
     ym_client = Client().init()
-# 2. Настройки бота (Замени текст в кавычках на свой токен от @BotFather)
+
+# 2. Настройки бота
 BOT_TOKEN = "8516159067:AAGVvZRnYjXwThNjqLFrzVwDXZgewwqnZ5M"
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# 3. Состояния для опроса (строго по твоей схеме)
+# 3. Состояния для опроса
 class QuizStates(StatesGroup):
     choosing_age = State()    # Шаг 1: Возраст
     choosing_subject = State() # Шаг 2: Предмет
     choosing_goal = State()    # Шаг 3: Цель
 
-# 4. ИНТЕЛЛЕКТУАЛЬНАЯ МАТРИЦА ПЛЕЙЛИСТОВ (Интеграция с API Яндекс Музыки)
-# Бот автоматически выберет нужный плейлист на основе комбинации возраста и цели
+# 4. ИНТЕЛЛЕКТУАЛЬНАЯ МАТРИЦА ПЛЕЙЛИСТОВ
 PLAYLISTS_MATRIX = {
-    # Для младшего возраста (7-13 лет)
     "7-13": {
-        "concentration": "yamusic-top:1115",  # Умный Лоу-фай (мягкий ритм)
-        "memorization": "yamusic-top:1037",   # Эффект Моцарта для детей
-        "relaxation": "yamusic-top:1132",     # Звуки природы и дождя
-        "motivation": "yamusic-top:1130"       # Видеоигровой саундтрек для бодрости
+        "concentration": "1115",  # Умный Лоу-фай
+        "memorization": "1037",   # Эффект Моцарта
+        "relaxation": "1132",     # Звуки природы
+        "motivation": "1130"      # Видеоигровой саундтрек
     },
-    # Для подростков (13-17 лет)
     "13-17": {
-        "concentration": "yamusic-top:1115",  # Фокус Лоу-фай
-        "memorization": "yamusic-top:1037",   # Классика для школы
-        "relaxation": "yamusic-top:1031",     # Легкий инди-эмбиент
-        "motivation": "yamusic-top:1052"       # Энергичный электронный фокус
+        "concentration": "1115",  # Фокус Лоу-фай
+        "memorization": "1037",   # Классика для школы
+        "relaxation": "1031",     # Легкий инди-эмбиент
+        "motivation": "1052"      # Энергичный электронный фокус
     },
-    # Для студентов и старших (17+)
     "17+": {
-        "concentration": "yamusic-top:2220",  # Глубокий Эмбиент / Синематик
-        "memorization": "yamusic-top:1037",   # Сложная классика (Бах, Вивальди)
-        "relaxation": "yamusic-top:1132",     # Космический эмбиент
-        "motivation": "yamusic-top:1052"       # Мощный ритм для кодинга и сессии
+        "concentration": "2220",  # Глубокий Эмбиент
+        "memorization": "1037",   # Сложная классика
+        "relaxation": "1132",     # Космический эмбиент
+        "motivation": "1052"      # Мощный ритм для кодинга
     }
 }
 
@@ -74,7 +71,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 @dp.callback_query(QuizStates.choosing_age, lambda c: c.data.startswith("age_"))
 async def process_age(callback: types.CallbackQuery, state: FSMContext):
     user_age = callback.data.split("_")[1]
-    await state.update_data(age=user_age) # Запоминаем возраст
+    await state.update_data(age=user_age)
     
     builder = InlineKeyboardBuilder()
     builder.add(types.InlineKeyboardButton(text="📐 Математика", callback_data="subj_math"))
@@ -91,11 +88,11 @@ async def process_age(callback: types.CallbackQuery, state: FSMContext):
     )
     await callback.answer()
 
-# --- ШАГ 3: ВЫБОР ЦЕЛИ (ТИПА МУЗЫКИ) ---
+# --- ШАГ 3: ВЫБОР ЦЕЛИ ---
 @dp.callback_query(QuizStates.choosing_subject, lambda c: c.data.startswith("subj_"))
 async def process_subject(callback: types.CallbackQuery, state: FSMContext):
     user_subj = callback.data.split("_")[1]
-    await state.update_data(subject=user_subj) # Запоминаем предмет
+    await state.update_data(subject=user_subj)
     
     builder = InlineKeyboardBuilder()
     builder.add(types.InlineKeyboardButton(text="🎵 Концентрация (спокойная классика)", callback_data="goal_concentration"))
@@ -116,27 +113,27 @@ async def process_subject(callback: types.CallbackQuery, state: FSMContext):
 async def process_final_playlist(callback: types.CallbackQuery, state: FSMContext):
     goal = callback.data.split("_")[1]
     
-    # Извлекаем сохраненные данные возраста и предмета
     user_data = await state.get_data()
     age = user_data.get("age", "13-17")
     subject = user_data.get("subject", "other")
     
-    # Показываем статус загрузки
     status_message = await callback.message.answer("🔄 Алгоритм анализирует параметры и подбирает треки...")
     
     try:
-        # Умный выбор плейлиста на основе Матрицы (Возраст -> Цель)
-        playlist_uid = PLAYLISTS_MATRIX[age][goal]
-        user_id, playlist_id = playlist_uid.split(':')
+        # Получаем ID официального топ-плейлиста Яндекса
+        playlist_id = PLAYLISTS_MATRIX[age][goal]
         
-        # Запрашиваем треки напрямую из Яндекса
-        playlist = ym_client.users_playlists(playlist_id, user_id)
+        # Исправленный метод запроса официальных подборок Яндекса
+        playlist_data = ym_client.playlists_list(playlist_id)
+        if not playlist_data:
+            raise Exception("Не удалось загрузить плейлист")
+            
+        playlist = playlist_data[0]
         all_tracks = playlist.tracks
         
-        # Забираем ровно 6 случайных актуальных треков
+        # Забираем до 6 случайных треков из плейлиста
         random_tracks = random.sample(all_tracks, min(6, len(all_tracks)))
         
-        # Красивое оформление результатов под твой дизайн
         goal_titles = {
             "memorization": "🧠 Плейлист для ЗАПОМИНАНИЯ",
             "concentration": "🎵 Плейлист для КОНЦЕНТРАЦИИ",
@@ -144,8 +141,11 @@ async def process_final_playlist(callback: types.CallbackQuery, state: FSMContex
             "motivation": "⚡ Плейлист для МОТИВАЦИИ"
         }
         
-        response_text = f"{goal_titles.get(goal, '🎵 Музыкальный плейлист')}\n\n"
-        response_text += f"Эта подборка сгенерирована автоматически для возраста *{age}* под предмет *{subject.replace('math', 'Математика').replace('history', 'История').replace('literature', 'Литература').replace('languages', 'Языки').replace('other', 'Другое')}*:\n\n"
+        subj_ru = subject.replace('math', 'Математика').replace('history', 'История').replace('literature', 'Литература').replace('languages', 'Языки').replace('other', 'Другое')
+        
+        # Перевели на HTML для полной безопасности верстки
+        response_text = f"<b>{goal_titles.get(goal, '🎵 Музыкальный плейлист')}</b>\n\n"
+        response_text += f"Эта подборка сгенерирована автоматически для возраста <b>{age}</b> под предмет <b>{subj_ru}</b>:\n\n"
         response_text += "⏱ Длительность: 30-60 минут\n"
         response_text += "📍 Рекомендуемые композиции:\n\n"
         
@@ -155,18 +155,18 @@ async def process_final_playlist(callback: types.CallbackQuery, state: FSMContex
             artist = ", ".join([a.name for a in track.artists]) if track.artists else "Исполнитель"
             url = f"https://music.yandex.ru/album/{track.albums[0].id}/track/{track.id}"
             
-            response_text += f"{i}️⃣ {artist} — {title}\n🔗 [Слушать в Яндекс Музыке]({url})\n\n"
+            # Экранируем символы через HTML-теги для надежности
+            response_text += f"{i}️⃣ {artist} — {title}\n🔗 <a href='{url}'>Слушать в Яндекс Музыке</a>\n\n"
             
-        response_text += "💡 Совет: Эта музыка активизирует области мозга, отвечающие за память и продуктивность."
+        response_text += "💡 <i>Совет: Эта музыка активизирует области мозга, отвечающие за память и продуктивность.</i>"
         
         builder = InlineKeyboardBuilder()
         builder.add(types.InlineKeyboardButton(text="🔄 Начать заново", callback_data="restart_quiz"))
         
-        # Удаляем сообщение загрузки и выдаем готовый результат
         await status_message.delete()
         await callback.message.answer(
             response_text, 
-            parse_mode="Markdown", 
+            parse_mode="HTML", 
             reply_markup=builder.as_markup(),
             disable_web_page_preview=True
         )
@@ -182,13 +182,15 @@ async def process_final_playlist(callback: types.CallbackQuery, state: FSMContex
 # Перезапуск опроса
 @dp.callback_query(lambda c: c.data == "restart_quiz")
 async def restart_quiz(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+    try:
+        await callback.message.delete()
+    except:
+        pass
     await cmd_start(callback.message, state)
     await callback.answer()
 
 # --- ДОБАВКА ДЛЯ БЕСПЛАТНОГО ОБЛАКА RENDER ---
 from aiohttp import web
-import os
 
 async def handle(request):
     return web.Response(text="Бот работает!")
