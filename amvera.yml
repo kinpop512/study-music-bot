@@ -8,4 +8,4 @@ build:
   requirementsPath: requirements.txt
 
 run:
-  command: python bot.py
+  scriptName: bot.py
