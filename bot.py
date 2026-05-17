@@ -2,6 +2,8 @@ import os
 import telebot
 from telebot import types
 
+print("=== ИНИЦИАЛИЗАЦИЯ: СКРИПТ УСПЕШНО СТАРТАНУЛ ===", flush=True)
+
 # Инициализируем бота через переменную окружения Amvera
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
