@@ -2,17 +2,17 @@ import os
 import telebot
 from telebot import types
 
-print("=== ИНИЦИАЛИЗАЦИЯ: СКРИПТ УСПЕШНО СТАРТАНУЛ ===", flush=True)
+# Принудительный моментальный вывод в консоль Amvera
+print("=== ИНИЦИАЛИЗАЦИЯ: ЗАПУСК СКРИПТА ===", flush=True)
 
-# Инициализируем бота через переменную окружения Amvera
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+
 if not BOT_TOKEN:
-    raise ValueError("Ошибка: Переменная BOT_TOKEN не найдена в окружении Amvera!")
+    print("=== КРИТИЧЕСКАЯ ОШИБКА: ТОКЕН В ОКРУЖЕНИИ НЕ НАЙДЕН! ===", flush=True)
+    raise ValueError("Скрипт остановлен: нет токена.")
 
+print(f"=== ТОКЕН УСПЕШНО СЧИТАН (Длина: {len(BOT_TOKEN)} симв.) ===", flush=True)
 bot = telebot.TeleBot(BOT_TOKEN)
-
-# Новая расширенная база данных с картинками, наукой и гибридными ссылками
-MUSIC_DATABASE = {
     "lofi": {
         "title": "☕ Lo-Fi Фокус (Состояние Потока)",
         "image": "https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=600&auto=format&fit=crop", # Уютная атмосфера для учебы
